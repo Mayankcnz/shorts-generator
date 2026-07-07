@@ -24,6 +24,16 @@
 .DS_Store
 *.pem
 
+# generated video files
+*.mp4
+*.mov
+*.mkv
+*.webm
+*.avi
+storage/videos/
+*.wav
+*.txt
+
 # debug
 npm-debug.log*
 yarn-debug.log*
