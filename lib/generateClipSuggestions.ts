@@ -18,14 +18,25 @@ function extractJson(text: string): unknown {
     .replace(/```/g, "")
     .trim();
 
-  const firstBracket = cleaned.indexOf("[");
-  const lastBracket = cleaned.lastIndexOf("]");
+  try {
+    return JSON.parse(cleaned);
+  } catch {
+    const arrayStart = cleaned.indexOf("[");
+    const arrayEnd = cleaned.lastIndexOf("]");
 
-  if (firstBracket === -1 || lastBracket === -1) {
-    throw new Error("The model did not return a JSON array.");
+    if (arrayStart !== -1 && arrayEnd !== -1) {
+      return JSON.parse(cleaned.slice(arrayStart, arrayEnd + 1));
+    }
+
+    const objectStart = cleaned.indexOf("{");
+    const objectEnd = cleaned.lastIndexOf("}");
+
+    if (objectStart !== -1 && objectEnd !== -1) {
+      return JSON.parse(cleaned.slice(objectStart, objectEnd + 1));
+    }
+
+    throw new Error("Could not find valid JSON in Ollama response.");
   }
-
-  return JSON.parse(cleaned.slice(firstBracket, lastBracket + 1));
 }
 
 function isValidClipSuggestion(value: unknown): value is ClipSuggestion {
@@ -219,11 +230,9 @@ ${transcript}
 
   const parsed = extractJson(data.response);
 
-  if (!Array.isArray(parsed)) {
-    throw new Error("Ollama response was not an array.");
-  }
+  const parsedArray = Array.isArray(parsed) ? parsed : [parsed];
 
-  const suggestions = parsed
+  const suggestions = parsedArray
     .filter(isValidClipSuggestion)
     .map((clip) => validateClip(clip, videoDuration))
     .filter((clip): clip is ClipSuggestion => clip !== null)
