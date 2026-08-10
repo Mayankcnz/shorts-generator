@@ -1,7 +1,24 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-<img width="4862" height="300" alt="image" src="https://github.com/user-attachments/assets/df316933-f427-45fc-95a2-4f3cb6bd1153" />
-
+```mermaid
+flowchart TD
+    A["User enters a YouTube URL"]
+    --> B["React UI<br/>app/page.tsx"]
+    --> C["POST /api/analyze"]
+    --> D["API route validates the URL"]
+    --> E["yt-dlp downloads the video"]
+    --> F["MP4 file"]
+    --> G["FFmpeg extracts the audio"]
+    --> H["WAV file"]
+    --> I["Python and Whisper create the transcript"]
+    --> J["Transcript file"]
+    --> K["generateClipSuggestions()"]
+    --> L["Ollama generates clip suggestions"]
+    --> M["Parse and validate the clip data"]
+    --> N["Return a JSON response"]
+    --> O["Update React state"]
+    --> P["Display the transcript and suggested clips"]
+```
 
 ## Getting Started
 
