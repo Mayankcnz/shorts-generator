@@ -8,6 +8,14 @@ import { POST } from "@/app/api/analyze/route";
 describe("POST /api/analyze integration", () => {
   it("returns 400 when the request does not contain a YouTube URL", async () => {
   // Test implementation goes here
+  const request = new Request("http://localhost/api/analyze", {
+    method: "POST",
+    headers: {
+    "Content-Type": "application/json",
+    },
+    body: JSON.stringify({}),
+});
+
   });
 
   it.todo(
