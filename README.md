@@ -1,5 +1,18 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+The Request Flow
+
+```mermaid
+flowchart TD
+    A["Browser<br/>app/page.tsx"]
+    -->|"POST /api/analyze"| B["Local Next.js server<br/>localhost:3000"]
+    --> C["app/api/analyze/route.ts"]
+    --> D["Run yt-dlp"]
+    --> E["Run FFmpeg"]
+    --> F["Generate transcript and clips"]
+    -->|"JSON response"| A
+```
+
 ```mermaid
 flowchart TD
     A["User enters a YouTube URL"]
@@ -19,6 +32,8 @@ flowchart TD
     --> O["Update React state"]
     --> P["Display the transcript and suggested clips"]
 ```
+
+
 
 ## Getting Started
 
