@@ -33,8 +33,6 @@ flowchart TD
     --> P["Display the transcript and suggested clips"]
 ```
 
-
-
 ## Getting Started
 
 First, run the development server:

@@ -1,20 +1,13 @@
 "use client";
 
 import { useState } from "react";
-
-type Clip = {
-  title: string;
-  start: string;
-  end: string;
-  score: number;
-  reason: string;
-  hook: string;
-};
+import type { ClipSuggestion } from "@/lib/contracts/clip";
+import { formatTimestamp } from "@/lib/formatTimestamp";
 
 export default function Home() {
   const [url, setUrl] = useState("");
   const [transcript, setTranscript] = useState("");
-  const [clips, setClips] = useState<Clip[]>([]);
+  const [clips, setClips] = useState<ClipSuggestion[]>([]);
   const [loading, setLoading] = useState(false);
 
   async function analyzeVideo() {
@@ -75,11 +68,12 @@ export default function Home() {
               <div key={index} className="bg-zinc-900 p-5 rounded space-y-2">
                 <div className="text-xl font-semibold">{clip.title}</div>
                 <div>
-                  {clip.start} → {clip.end}
+                  {formatTimestamp(clip.start)} → {formatTimestamp(clip.end)}
                 </div>
                 <div>Score: {clip.score}/10</div>
                 <div>Hook: {clip.hook}</div>
-                <div className="text-zinc-400">{clip.reason}</div>
+                <div className="capitalize">Type: {clip.storyType}</div>
+                <div className="text-zinc-400">{clip.whyItWorks}</div>
               </div>
             ))}
           </div>

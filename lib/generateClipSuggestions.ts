@@ -1,12 +1,9 @@
-export type ClipSuggestion = {
-  title: string;
-  start: number;
-  end: number;
-  score: number;
-  hook: string;
-  whyItWorks: string;
-  storyType: string;
-};
+import {
+  type ClipSuggestion,
+  isStoryType,
+} from "@/lib/contracts/clip";
+
+export type { ClipSuggestion } from "@/lib/contracts/clip";
 
 type OllamaResponse = {
   response?: string;
@@ -53,7 +50,7 @@ function isValidClipSuggestion(value: unknown): value is ClipSuggestion {
     typeof clip.score === "number" &&
     typeof clip.hook === "string" &&
     typeof clip.whyItWorks === "string" &&
-    typeof clip.storyType === "string"
+    isStoryType(clip.storyType)
   );
 }
 
