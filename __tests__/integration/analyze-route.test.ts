@@ -89,6 +89,8 @@ describe("POST /api/analyze integration", () => {
     // Assert: response
     // expect(response.status).toBe(200);
 
+    expect(response.status).toBe(200);
+    
     expect(body).toEqual({
       transcript: expectedTranscript,
       clips: expectedClips,
@@ -105,7 +107,5 @@ describe("POST /api/analyze integration", () => {
   },
 );
 
-  it.todo("reuses existing video, audio, and transcript files");
-
-  it.todo("returns 500 when an external processing command fails");
+  it.todo("returns 500 when the video-processing workflow fails");
 });
