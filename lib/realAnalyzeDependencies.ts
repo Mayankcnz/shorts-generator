@@ -1,5 +1,5 @@
 import { promisify } from "util";
-import { ClipSuggestion, generateClipSuggestions } from "./generateClipSuggestions";
+import { generateClipSuggestions } from "./generateClipSuggestions";
 import fs from "fs/promises";
 import { exec } from "child_process";
 import { AnalyzeDependencies } from "./analyzeVideo";

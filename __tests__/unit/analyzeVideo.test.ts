@@ -34,25 +34,25 @@ const expectedClips: ClipSuggestion[] = [
   },
 ];
 
-const runCommand = vi.fn(
-  async (_command: string) => undefined,
-);
+const runCommand =
+  vi.fn<AnalyzeDependencies["runCommand"]>()
+    .mockResolvedValue(undefined);
 
-const fileExists = vi.fn(
-  async (_path: string) => false,
-);
+const fileExists =
+  vi.fn<AnalyzeDependencies["fileExists"]>()
+    .mockResolvedValue(false);
 
-const createDirectory = vi.fn(
-  async (_path: string) => undefined,
-);
+const createDirectory =
+  vi.fn<AnalyzeDependencies["createDirectory"]>()
+    .mockResolvedValue(undefined);
 
-const readTextFile = vi.fn(
-  async (_path: string) => expectedTranscript,
-);
+const readTextFile =
+  vi.fn<AnalyzeDependencies["readTextFile"]>()
+    .mockResolvedValue(expectedTranscript);
 
-const generateClips = vi.fn(
-  async (_transcript: string) => expectedClips,
-);
+const generateClips =
+  vi.fn<AnalyzeDependencies["generateClips"]>()
+    .mockResolvedValue(expectedClips);
 
 const dependencies: AnalyzeDependencies = {
   runCommand,
@@ -151,27 +151,25 @@ expect(generateClips).toHaveBeenCalledWith(
       storyType: "story",
     },
   ];
+const runCommand =
+  vi.fn<AnalyzeDependencies["runCommand"]>()
+    .mockResolvedValue(undefined);
 
-  const runCommand = vi.fn(
-    async (_command: string) => undefined,
-  );
+const fileExists =
+  vi.fn<AnalyzeDependencies["fileExists"]>()
+    .mockResolvedValue(true);
 
-  // All three files already exist.
-  const fileExists = vi.fn(
-    async (_path: string) => true,
-  );
+const createDirectory =
+  vi.fn<AnalyzeDependencies["createDirectory"]>()
+    .mockResolvedValue(undefined);
 
-  const createDirectory = vi.fn(
-    async (_path: string) => undefined,
-  );
+const readTextFile =
+  vi.fn<AnalyzeDependencies["readTextFile"]>()
+    .mockResolvedValue(expectedTranscript);
 
-  const readTextFile = vi.fn(
-    async (_path: string) => expectedTranscript,
-  );
-
-  const generateClips = vi.fn(
-    async (_transcript: string) => expectedClips,
-  );
+const generateClips =
+  vi.fn<AnalyzeDependencies["generateClips"]>()
+    .mockResolvedValue(expectedClips);
 
   const dependencies: AnalyzeDependencies = {
     runCommand,

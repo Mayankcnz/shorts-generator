@@ -1,9 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { POST } from "@/app/api/analyze/route";
 
-
-
-
 const mocks = vi.hoisted(() => ({
   analyzeVideo: vi.fn(),
 }));
@@ -107,5 +104,37 @@ describe("POST /api/analyze integration", () => {
   },
 );
 
-  it.todo("returns 500 when the video-processing workflow fails");
+it("returns 500 when video processing fails", async () => {
+  // Arrange
+  mocks.analyzeVideo.mockRejectedValue(
+    new Error("Video processing failed"),
+  );
+
+  const request = new Request(
+    "http://localhost/api/analyze",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        url: "https://www.youtube.com/watch?v=abc123",
+      }),
+    },
+  );
+
+  // Act
+  const response = await POST(request);
+  const body = await response.json();
+
+  // Assert
+  expect(response.status).toBe(500);
+
+  expect(body).toEqual({
+    error:
+      "Something went wrong while analyzing the video.",
+  });
+
+  expect(mocks.analyzeVideo).toHaveBeenCalledTimes(1);
+});
 });
