@@ -3,7 +3,7 @@ import type {
 } from "@/lib/contracts/clip";
 
 export type AnalyzeDependencies = {
-  runCommand(command: string): Promise<void>;
+  runCommand(command: string, arguments_: string[]): Promise<void>;
 
   fileExists(
     path: string,
@@ -35,6 +35,13 @@ function getYouTubeVideoId(url: string): string {
   return match?.[1] ?? crypto.randomUUID();
 }
 
+
+/**
+ * describes the video-processing sequence:
+ * @param url
+ * @param dependencies
+ * @returns
+ */
 export async function analyzeVideo(
   url: string,
   dependencies: AnalyzeDependencies,
@@ -62,9 +69,16 @@ export async function analyzeVideo(
     !(await dependencies.fileExists(videoPath))
   ) {
     await dependencies.runCommand(
-      `yt-dlp -f "bv*[ext=mp4]+ba[ext=m4a]/b[ext=mp4]/best" ` +
-        `--merge-output-format mp4 ` +
-        `-o "${videoPath}" "${url}"`,
+      "yt-dlp",
+      [
+        "-f",
+        "bv*[ext=mp4]+ba[ext=m4a]/b[ext=mp4]/best",
+        "--merge-output-format",
+        "mp4",
+        "-o",
+        videoPath,
+        url,
+      ],
     );
   } else {
     console.log(
@@ -76,8 +90,17 @@ export async function analyzeVideo(
     !(await dependencies.fileExists(audioPath))
   ) {
     await dependencies.runCommand(
-      `ffmpeg -y -i "${videoPath}" ` +
-        `-ar 16000 -ac 1 "${audioPath}"`,
+      "ffmpeg",
+      [
+        "-y",
+        "-i",
+        videoPath,
+        "-ar",
+        "16000",
+        "-ac",
+        "1",
+        audioPath,
+      ],
     );
   } else {
     console.log(
@@ -89,8 +112,8 @@ export async function analyzeVideo(
     !(await dependencies.fileExists(transcriptPath))
   ) {
     await dependencies.runCommand(
-      `python3 scripts/transcribe.py ` +
-        `"${audioPath}" "${transcriptPath}"`,
+      "python3",
+      ["scripts/transcribe.py", audioPath, transcriptPath],
     );
   } else {
     console.log(

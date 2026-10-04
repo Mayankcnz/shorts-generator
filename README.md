@@ -1,68 +1,97 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Shorts Generator
 
-The Request Flow
+The application accepts a YouTube URL, processes the video locally, creates a
+transcript, and asks a local Ollama model to suggest useful short-form clips.
 
-```mermaid
-flowchart TD
-    A["Browser<br/>app/page.tsx"]
-    -->|"POST /api/analyze"| B["Local Next.js server<br/>localhost:3000"]
-    --> C["app/api/analyze/route.ts"]
-    --> D["Run yt-dlp"]
-    --> E["Run FFmpeg"]
-    --> F["Generate transcript and clips"]
-    -->|"JSON response"| A
-```
+## Local architecture
 
 ```mermaid
 flowchart TD
-    A["User enters a YouTube URL"]
-    --> B["React UI<br/>app/page.tsx"]
-    --> C["POST /api/analyze"]
-    --> D["API route validates the URL"]
-    --> E["yt-dlp downloads the video"]
-    --> F["MP4 file"]
-    --> G["FFmpeg extracts the audio"]
-    --> H["WAV file"]
-    --> I["Python and Whisper create the transcript"]
-    --> J["Transcript file"]
-    --> K["generateClipSuggestions()"]
-    --> L["Ollama generates clip suggestions"]
-    --> M["Parse and validate the clip data"]
-    --> N["Return a JSON response"]
-    --> O["Update React state"]
-    --> P["Display the transcript and suggested clips"]
+    A["React UI"] -->|"POST /api/jobs"| B["Next.js job API"]
+    B --> C["PostgreSQL: queued job"]
+    B -->|"202 Accepted + job ID"| A
+    D["Local worker"] -->|"Claim queued job"| C
+    D --> E["yt-dlp"]
+    E --> F["FFmpeg"]
+    F --> G["Python + Whisper"]
+    G --> H["Ollama clip suggestions"]
+    H -->|"Store result or failure"| C
+    A -->|"GET /api/jobs/:jobId"| B
 ```
 
-## Getting Started
+PostgreSQL acts as both durable job storage and the local development queue.
+SQS will replace the polling boundary in a later AWS milestone, after the local
+job lifecycle has been verified.
 
-First, run the development server:
+## Prerequisites
+
+- Node.js
+- Docker Desktop
+- `yt-dlp`
+- FFmpeg
+- Python and the transcription dependencies used by `scripts/transcribe.py`
+- Ollama with the model configured in `lib/generateClipSuggestions.ts`
+
+## Environment
+
+Copy `.env.example` to `.env` and replace the example password. The development
+and test databases use separate connection strings.
+
+## Set up PostgreSQL
+
+Start PostgreSQL:
+
+```bash
+docker compose up -d postgres
+```
+
+Create the test database once:
+
+```bash
+docker compose exec postgres sh -lc \
+  'createdb -U "$POSTGRES_USER" shorts_generator_test'
+```
+
+Apply the migrations to both databases:
+
+```bash
+npm run db:migrate
+npm run db:migrate:test
+```
+
+## Run the application
+
+Use two terminals. Start Next.js in the first:
 
 ```bash
 npm run dev
-# or
-yarn dev
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Start the local processing worker in the second:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run worker
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Open [http://localhost:3000](http://localhost:3000), submit a YouTube URL, and
+leave both processes running. The API returns a job ID immediately, the worker
+processes the queued job, and the frontend polls until the job completes or
+fails.
 
-## Learn More
+## Verification
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm run lint
+npm run typecheck
+npm run test:unit
+npm run test:integration
+npm run build
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The repository integration tests connect to `shorts_generator_test`, apply no
+mocks to PostgreSQL, and clean up the rows they create.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Design decisions
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+See [ADR 0001](docs/adr/0001-asynchronous-video-processing.md) for the reasoning
+behind separating request submission from expensive video processing.

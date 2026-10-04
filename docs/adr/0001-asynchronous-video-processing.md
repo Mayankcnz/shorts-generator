@@ -1,6 +1,6 @@
 # ADR 0001: Process video analysis asynchronously
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-09-10
 
 ## Context

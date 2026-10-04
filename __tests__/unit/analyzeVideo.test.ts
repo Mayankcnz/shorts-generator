@@ -110,17 +110,30 @@ expect(runCommand).toHaveBeenCalledTimes(3);
 
 expect(runCommand).toHaveBeenNthCalledWith(
   1,
-  expect.stringContaining("yt-dlp"),
+  "yt-dlp",
+  expect.arrayContaining([
+    "storage/videos/abc123.mp4",
+    "https://www.youtube.com/watch?v=abc123",
+  ]),
 );
 
 expect(runCommand).toHaveBeenNthCalledWith(
   2,
-  expect.stringContaining("ffmpeg"),
+  "ffmpeg",
+  expect.arrayContaining([
+    "storage/videos/abc123.mp4",
+    "storage/audio/abc123.wav",
+  ]),
 );
 
 expect(runCommand).toHaveBeenNthCalledWith(
   3,
-  expect.stringContaining("python3"),
+  "python3",
+  [
+    "scripts/transcribe.py",
+    "storage/audio/abc123.wav",
+    "storage/transcripts/abc123.txt",
+  ],
 );
 
 // Assert: final processing

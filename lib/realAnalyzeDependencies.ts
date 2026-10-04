@@ -1,10 +1,10 @@
 import { promisify } from "util";
 import { generateClipSuggestions } from "./generateClipSuggestions";
 import fs from "fs/promises";
-import { exec } from "child_process";
+import { execFile } from "child_process";
 import { AnalyzeDependencies } from "./analyzeVideo";
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
 export const realAnalyzeDependencies: AnalyzeDependencies = {
   createDirectory: async (path) => {
@@ -26,8 +26,8 @@ export const realAnalyzeDependencies: AnalyzeDependencies = {
     }
   },
 
-  runCommand: async (command) => {
-    await execAsync(command);
+  runCommand: async (command, arguments_) => {
+    await execFileAsync(command, arguments_);
   },
 
   generateClips: generateClipSuggestions,
