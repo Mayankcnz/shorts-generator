@@ -9,9 +9,11 @@ import {
   text,
   timestamp,
   uuid,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
 
 import { STORY_TYPES } from "@/lib/contracts/clip";
+
 
 export const analysisJobStatus = pgEnum("analysis_job_status", [
   "queued",
@@ -42,6 +44,9 @@ export const analysisJobs = pgTable(
     completedAt: timestamp("completed_at", { withTimezone: true }),
   },
   (table) => [
+    uniqueIndex("analysis_jobs_active_video_id_unique")
+    .on(table.videoId)
+    .where(sql`${table.status} IN ('queued', 'processing')`),
     index("analysis_jobs_status_created_at_idx").on(
       table.status,
       table.createdAt,

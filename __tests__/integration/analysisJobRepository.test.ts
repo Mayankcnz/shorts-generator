@@ -142,4 +142,58 @@ describe("analysisJobRepository", () => {
     expect(claims.filter((job) => job === null)).toHaveLength(1);
   });
 
+  it.each(["queued", "processing"] as const)(
+    "rejects another active job for a video with a %s job",
+    async (status) => {
+      const videoId = crypto.randomUUID();
+      const [existing] = await database.insert(analysisJobs).values({
+        videoUrl: `https://youtu.be/${videoId}`,
+        videoId,
+        status,
+      }).returning();
+      createdJobIds.push(existing.id);
+
+      // Use PostgreSQL directly so we can assert its actual error code.
+      // The transaction guarantees cleanup even if the insert unexpectedly succeeds.
+      const client = await pool.connect();
+      try {
+        await client.query("BEGIN");
+        await expect(client.query(
+          "INSERT INTO analysis_jobs (video_url, video_id) VALUES ($1, $2)",
+          [`https://youtu.be/${videoId}`, videoId],
+        )).rejects.toMatchObject({
+          code: "23505",
+          constraint: "analysis_jobs_active_video_id_unique",
+        });
+      } finally {
+        await client.query("ROLLBACK");
+        client.release();
+      }
+
+      const stored = await database.select().from(analysisJobs)
+        .where(eq(analysisJobs.videoId, videoId));
+      expect(stored).toHaveLength(1);
+      expect(stored[0].id).toBe(existing.id);
+    },
+  );
+
+  it.each(["completed", "failed"] as const)(
+    "allows a new queued job after a %s job",
+    async (status) => {
+      const videoId = crypto.randomUUID();
+      for (const jobStatus of [status, "queued"] as const) {
+        const [job] = await database.insert(analysisJobs).values({
+          videoUrl: `https://youtu.be/${videoId}`,
+          videoId,
+          status: jobStatus,
+        }).returning();
+        createdJobIds.push(job.id);
+      }
+      const stored = await database.select().from(analysisJobs)
+        .where(eq(analysisJobs.videoId, videoId));
+      expect(stored).toHaveLength(2);
+      expect(stored.filter((job) => job.status === "queued")).toHaveLength(1);
+    },
+  );
+
 });

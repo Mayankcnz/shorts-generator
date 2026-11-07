@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "analysis_jobs_active_video_id_unique" ON "analysis_jobs" ("video_id") WHERE "status" IN ('queued', 'processing');

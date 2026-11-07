@@ -13,36 +13,30 @@ export async function POST(request: Request) {
     );
   }
 
+  const url =
+    typeof body === "object" && body !== null && "url" in body
+      ? body.url
+      : undefined;
+
+  if (!isYouTubeUrl(url)) {
+    return Response.json(
+      { error: "A valid HTTPS YouTube URL is required." },
+      { status: 400 },
+    );
+  }
+
   try {
-    const url =
-      typeof body === "object" && body !== null && "url" in body
-        ? body.url
-        : undefined;
-
-    if (!isYouTubeUrl(url)) {
-      return Response.json(
-        { error: "A valid HTTPS YouTube URL is required." },
-        { status: 400 },
-      );
-    }
-
     const job = await analysisJobRepository.create(url);
 
     return Response.json(
-      {
-        jobId: job.id,
-        status: job.status,
-      },
+      { jobId: job.id, status: job.status },
       {
         status: 202,
-        headers: {
-          Location: `/api/jobs/${job.id}`,
-        },
+        headers: { Location: `/api/jobs/${job.id}` },
       },
     );
   } catch (error) {
     console.error("Failed to create analysis job", error);
-
     return Response.json(
       { error: "Unable to create the analysis job." },
       { status: 500 },

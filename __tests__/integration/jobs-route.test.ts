@@ -49,6 +49,7 @@ describe("analysis job routes", () => {
     const response = await POST(request);
 
     expect(response.status).toBe(202);
+    expect(mocks.create).toHaveBeenCalledExactlyOnceWith(queuedJob.videoUrl);
     expect(response.headers.get("Location")).toBe(
       `/api/jobs/${queuedJob.id}`,
     );
@@ -155,6 +156,30 @@ describe("analysis job routes", () => {
     expect(response.status).toBe(500);
     await expect(response.json()).resolves.toEqual({
       error: "Unable to retrieve the analysis job.",
+    });
+  });
+
+  it.each([{}, null, [], { url: 123 }, { url: "https://example.com/video" }])(
+    "rejects an invalid submission body: %j",
+    async (body) => {
+      const response = await POST(new Request("http://localhost/api/jobs", {
+        method: "POST",
+        body: JSON.stringify(body),
+      }));
+      expect(response.status).toBe(400);
+      expect(mocks.create).not.toHaveBeenCalled();
+    },
+  );
+
+  it("returns a safe error when creating a job fails", async () => {
+    mocks.create.mockRejectedValueOnce(new Error("Private database details"));
+    const response = await POST(new Request("http://localhost/api/jobs", {
+      method: "POST",
+      body: JSON.stringify({ url: queuedJob.videoUrl }),
+    }));
+    expect(response.status).toBe(500);
+    await expect(response.json()).resolves.toEqual({
+      error: "Unable to create the analysis job.",
     });
   });
 

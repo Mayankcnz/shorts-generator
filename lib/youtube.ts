@@ -21,3 +21,15 @@ export function isYouTubeUrl(value: unknown): value is string {
     return false;
   }
 }
+
+export function extractVideoId(value: string): string | null {
+  
+  const url = new URL(value);
+
+  if(url.hostname === "youtu.be"){
+    return url.pathname.slice(1) || null;
+  }
+
+    return url.searchParams.get("v");
+
+}
