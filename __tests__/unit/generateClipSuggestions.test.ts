@@ -99,4 +99,23 @@ describe("generateClipSuggestions", () => {
       generateClipSuggestions("[0 - 60] A valid transcript"),
     ).rejects.toThrow("The model returned no valid clip suggestions.");
   });
+  it("accepts an explicit empty array when no suitable clips exist", async () => {
+    vi.mocked(fetch).mockResolvedValue(ollamaResponse("[]"));
+    const transcript = "[0 - 60] A passage without a standalone moment.";
+    await expect(generateClipSuggestions(transcript)).resolves.toEqual([]);
+
+    const [, options] = vi.mocked(fetch).mock.calls[0];
+    const body = JSON.parse(options!.body as string);
+    expect(body.prompt).toContain(transcript);
+    expect(body.prompt).toContain("Use only the supplied transcript as evidence.");
+    expect(body.prompt).toContain("return []");
+    expect(body.prompt).not.toMatch(/gym|drone/i);
+  });
+
+  it("still rejects malformed output instead of treating it as no matches", async () => {
+    vi.mocked(fetch).mockResolvedValue(ollamaResponse('{"unexpected":true}'));
+    await expect(generateClipSuggestions("[0 - 60] Spoken content."))
+      .rejects.toThrow("The model returned no valid clip suggestions.");
+  });
+
 });

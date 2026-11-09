@@ -216,4 +216,37 @@ const generateClips =
 });
 
 
+  it.each([
+    "",
+    "   ",
+    "[90.00 - 97.00]  .\n[97.00 - 104.00]  .",
+    "[0 - 60] ... ! ? —",
+    "[0 - 60]",
+  ])("rejects transcripts without speech before generating clips: %j", async (transcript) => {
+    const dependencies: AnalyzeDependencies = {
+      runCommand: vi.fn().mockResolvedValue(undefined),
+      fileExists: vi.fn().mockResolvedValue(true),
+      createDirectory: vi.fn().mockResolvedValue(undefined),
+      readTextFile: vi.fn().mockResolvedValue(transcript),
+      generateClips: vi.fn(),
+    };
+
+    await expect(analyzeVideo("https://youtu.be/abc123", dependencies))
+      .rejects.toThrow("No usable speech detected.");
+    expect(dependencies.generateClips).not.toHaveBeenCalled();
+  });
+
+  it("accepts non-English speech", async () => {
+    const transcript = "[0.00 - 5.00] 你好，世界。";
+    const dependencies: AnalyzeDependencies = {
+      runCommand: vi.fn().mockResolvedValue(undefined),
+      fileExists: vi.fn().mockResolvedValue(true),
+      createDirectory: vi.fn().mockResolvedValue(undefined),
+      readTextFile: vi.fn().mockResolvedValue(transcript),
+      generateClips: vi.fn().mockResolvedValue([]),
+    };
+    await analyzeVideo("https://youtu.be/abc123", dependencies);
+    expect(dependencies.generateClips).toHaveBeenCalledExactlyOnceWith(transcript);
+  });
+
 });

@@ -108,4 +108,26 @@ describe("processNextAnalysisJob", () => {
       status: "failed",
     });
   });
+  it("records no-speech input as failed without calling the model", async () => {
+    const repository = createRepository();
+    repository.claimNextQueued.mockResolvedValue(processingJob);
+    const dependencies = createDependencies();
+    vi.mocked(dependencies.readTextFile).mockResolvedValue(
+      "[90.00 - 97.00] .\n[97.00 - 104.00] .",
+    );
+
+    const result = await processNextAnalysisJob(repository, dependencies);
+
+    expect(result).toEqual({
+      processed: true,
+      jobId: processingJob.id,
+      status: "failed",
+    });
+    expect(repository.fail).toHaveBeenCalledExactlyOnceWith(
+      processingJob.id, "No usable speech detected.",
+    );
+    expect(repository.complete).not.toHaveBeenCalled();
+    expect(dependencies.generateClips).not.toHaveBeenCalled();
+  });
+
 });

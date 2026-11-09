@@ -124,6 +124,16 @@ export async function analyzeVideo(
   const transcript =
     await dependencies.readTextFile(transcriptPath);
 
+  // Timestamp digits are metadata, not evidence of transcribed speech.
+  const speech = transcript.replace(
+    /\[\s*\d+(?:\.\d+)?\s*-\s*\d+(?:\.\d+)?\s*\]/g,
+    "",
+  );
+
+  if (!/[\p{L}\p{N}]/u.test(speech)) {
+    throw new Error("No usable speech detected.");
+  }
+
   const clips =
     await dependencies.generateClips(transcript);
 

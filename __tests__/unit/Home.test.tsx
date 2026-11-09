@@ -46,6 +46,7 @@ describe("job progress polling", () => {
     await act(async () => { await vi.advanceTimersByTimeAsync(2000); });
     expect(screen.getByText("Job status: completed")).toBeTruthy();
     expect(screen.getByText("Finished transcript")).toBeTruthy();
+    expect(screen.getByText("No suitable clips were identified in this transcript.")).toBeTruthy();
     expect((screen.getByRole("button") as HTMLButtonElement).disabled).toBe(false);
     await act(async () => { await vi.advanceTimersByTimeAsync(6000); });
     expect(fetchMock).toHaveBeenCalledTimes(3);

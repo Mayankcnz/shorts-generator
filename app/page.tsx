@@ -144,6 +144,10 @@ export default function Home() {
 
         {error && <div className="text-red-400">{error}</div>}
 
+        {job?.status === "completed" && clips.length === 0 && (
+          <p>No suitable clips were identified in this transcript.</p>
+        )}
+
         {clips.length > 0 && (
           <div className="space-y-4">
             <h2 className="text-2xl font-bold">Suggested Shorts</h2>
