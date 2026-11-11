@@ -97,7 +97,7 @@ describe("generateClipSuggestions", () => {
 
     await expect(
       generateClipSuggestions("[0 - 60] A valid transcript"),
-    ).rejects.toThrow("The model returned no valid clip suggestions.");
+    ).rejects.toThrow("No valid clip suggestions.");
   });
   it("accepts an explicit empty array when no suitable clips exist", async () => {
     vi.mocked(fetch).mockResolvedValue(ollamaResponse("[]"));
@@ -115,7 +115,7 @@ describe("generateClipSuggestions", () => {
   it("still rejects malformed output instead of treating it as no matches", async () => {
     vi.mocked(fetch).mockResolvedValue(ollamaResponse('{"unexpected":true}'));
     await expect(generateClipSuggestions("[0 - 60] Spoken content."))
-      .rejects.toThrow("The model returned no valid clip suggestions.");
+      .rejects.toThrow("No valid clip suggestions.");
   });
 
 });
